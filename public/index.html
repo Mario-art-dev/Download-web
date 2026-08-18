@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Descargador de vídeos</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="card">
+    <h1>Descargador de vídeos</h1>
+    <p class="subtitle">Pega un enlace de YouTube o TikTok y descárgalo en la mejor calidad disponible.</p>
+
+    <form id="form" class="form">
+      <input
+        id="url"
+        type="url"
+        inputmode="url"
+        placeholder="https://www.youtube.com/watch?v=... o https://www.tiktok.com/..."
+        autocomplete="off"
+        required
+      />
+      <div class="buttons">
+        <button type="button" id="pasteBtn" class="secondary">Pegar</button>
+        <button type="submit" id="downloadBtn">Descargar</button>
+      </div>
+    </form>
+
+    <div id="preview" class="preview hidden">
+      <img id="thumb" alt="Miniatura del vídeo" />
+      <div class="preview-info">
+        <p id="title"></p>
+        <p id="meta" class="meta"></p>
+      </div>
+    </div>
+
+    <div id="status" class="status hidden"></div>
+
+    <p class="note">
+      El vídeo se guardará en la carpeta de descargas de tu navegador. En la mayoría de móviles Android,
+      los vídeos descargados aparecen también en la Galería automáticamente. En iPhone, se guardan en la
+      app Archivos, desde donde puedes moverlos a Fotos.
+    </p>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -34,6 +34,7 @@ app.get('/api/info', async (req, res) => {
     const info = await getInfo(url);
     res.json(info);
   } catch (err) {
+    console.error('[/api/info]', url, err.message);
     res.status(502).json({ error: err.message || 'No se pudo obtener información del vídeo' });
   }
 });
@@ -69,6 +70,7 @@ app.get('/api/download', async (req, res) => {
       if (!res.headersSent) res.status(500).end();
     });
   } catch (err) {
+    console.error('[/api/download]', url, err.message);
     if (workDir) cleanup(workDir);
     if (!res.headersSent) {
       res.status(502).json({ error: err.message || 'Fallo al descargar el vídeo' });

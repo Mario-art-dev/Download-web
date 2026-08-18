@@ -85,6 +85,13 @@ const server = app.listen(PORT, () => {
       console.warn('AVISO: no se encontró "yt-dlp" en el sistema. Instálalo con: pip install -U yt-dlp');
     }
   });
+  // El proveedor de PO Token tarda un poco en arrancar; solo es para log,
+  // no bloquea que la app funcione si no llega a tiempo o falla.
+  setTimeout(() => {
+    require('http')
+      .get('http://127.0.0.1:4416/ping', (r) => console.log('[pot-provider] responde, status', r.statusCode))
+      .on('error', (err) => console.warn('[pot-provider] no responde:', err.message));
+  }, 3000);
 });
 
 // Sin límite de tiempo para las peticiones/conexiones: un vídeo largo

@@ -53,12 +53,16 @@ Si con el uso lo notas lento o quieres que no se duerma nunca, el siguiente paso
 
 ## YouTube pide "Sign in to confirm you're not a bot"
 
-YouTube bloquea con más frecuencia las IPs de servidores en la nube (Render incluida) y pide verificar que no eres un bot. La única solución fiable es que `yt-dlp` mande las cookies de tu propia sesión de YouTube. **Nunca subas ese archivo al repositorio** (son credenciales de tu cuenta); en Render se sube como "Secret File", que no se guarda en git y solo lo ve tu servicio.
+YouTube bloquea con más frecuencia las IPs de servidores en la nube (Render incluida) y pide verificar que no eres un bot.
+
+**Primera línea de defensa (automática, no requiere hacer nada):** la imagen incluye un [proveedor de PO Token](https://github.com/Brainicism/bgutil-ytdlp-pot-provider) que corre junto a la app y ayuda a que las peticiones parezcan más legítimas sin necesitar cookies. No está garantizado al 100% (YouTube cambia esto constantemente), pero es la mejora que menos esfuerzo requiere.
+
+**Si aun así sigue fallando, la solución fiable es usar las cookies de tu propia sesión de YouTube.** **Nunca subas ese archivo al repositorio** (son credenciales de tu cuenta); en Render se sube como "Secret File", que no se guarda en git y solo lo ve tu servicio.
 
 1. En tu **ordenador**, con Chrome o Firefox, inicia sesión en [youtube.com](https://youtube.com) con tu cuenta normal.
-2. Instala la extensión **"Get cookies.txt LOCALLY"** ([Chrome Web Store](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)) y, estando en youtube.com, expórtalas: te descarga un archivo `cookies.txt`.
+2. Instala la extensión **"Get cookies.txt LOCALLY"** ([Chrome Web Store](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)) y, estando en youtube.com, expórtalas: te descarga un archivo `cookies.txt`. En Android, **Kiwi Browser** soporta la misma extensión. En iPhone no hay una forma fiable de hacerlo (Safari no da acceso a las cookies de sesión aunque se usen apps de terceros).
 3. En el dashboard de Render, entra en tu servicio `download-web` → pestaña **Environment** → sección **Secret Files**.
-4. **Add Secret File**: en "Filename" pon `/etc/secrets/cookies.txt` y pega dentro el contenido completo del `cookies.txt` que descargaste.
+4. **Add Secret File**: en "Filename" pon solo **`cookies.txt`** (sin ruta, Render ya lo coloca en `/etc/secrets/`) y pega dentro el contenido completo del `cookies.txt` que descargaste.
 5. Guarda. Render redesplegará solo el servicio con el archivo disponible; el código ya lo detecta automáticamente si existe en esa ruta (se puede cambiar con la variable `YTDLP_COOKIES_FILE` si prefieres otra ruta).
 6. Prueba de nuevo el mismo enlace en la web.
 

@@ -76,7 +76,7 @@ app.get('/api/download', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);
   checkYtDlpAvailable().then((ok) => {
     if (!ok) {
@@ -84,3 +84,10 @@ app.listen(PORT, () => {
     }
   });
 });
+
+// Sin límite de tiempo para las peticiones/conexiones: un vídeo largo
+// (1 hora o más) puede tardar varios minutos en descargarse y fusionarse
+// antes de empezar a enviarse, y no queremos que Node corte la conexión.
+server.timeout = 0;
+server.requestTimeout = 0;
+server.keepAliveTimeout = 0;

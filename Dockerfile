@@ -14,8 +14,7 @@ RUN git clone --single-branch --branch 1.3.1 --depth 1 \
     https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git /opt/bgutil-provider \
     && cd /opt/bgutil-provider/server \
     && npm ci \
-    && npx tsc \
-    && npm prune --omit=dev
+    && npx tsc
 
 WORKDIR /app
 

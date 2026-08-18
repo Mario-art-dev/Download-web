@@ -54,10 +54,16 @@ const COOKIES_SOURCE = process.env.YTDLP_COOKIES_FILE || '/etc/secrets/cookies.t
 const COOKIES_WRITABLE = path.join(os.tmpdir(), 'yt-dlp-cookies.txt');
 
 function getCookiesArgs() {
-  if (!fs.existsSync(COOKIES_SOURCE)) return [];
+  if (!fs.existsSync(COOKIES_SOURCE)) {
+    console.warn('[cookies] no hay archivo en', COOKIES_SOURCE, '- se pedirá sin cookies');
+    return [];
+  }
   try {
+    const size = fs.statSync(COOKIES_SOURCE).size;
     fs.copyFileSync(COOKIES_SOURCE, COOKIES_WRITABLE);
-  } catch {
+    console.log('[cookies] usando', COOKIES_SOURCE, `(${size} bytes)`);
+  } catch (err) {
+    console.error('[cookies] no se pudo copiar el archivo de cookies:', err.message);
     return [];
   }
   return ['--cookies', COOKIES_WRITABLE];

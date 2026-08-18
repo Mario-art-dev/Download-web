@@ -34,6 +34,7 @@ app.get('/api/info', async (req, res) => {
     const info = await getInfo(url);
     res.json(info);
   } catch (err) {
+    console.error('[/api/info]', url, err.message);
     res.status(502).json({ error: err.message || 'No se pudo obtener información del vídeo' });
   }
 });
@@ -69,6 +70,7 @@ app.get('/api/download', async (req, res) => {
       if (!res.headersSent) res.status(500).end();
     });
   } catch (err) {
+    console.error('[/api/download]', url, err.message);
     if (workDir) cleanup(workDir);
     if (!res.headersSent) {
       res.status(502).json({ error: err.message || 'Fallo al descargar el vídeo' });
@@ -76,7 +78,7 @@ app.get('/api/download', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);
   checkYtDlpAvailable().then((ok) => {
     if (!ok) {
@@ -84,3 +86,10 @@ app.listen(PORT, () => {
     }
   });
 });
+
+// Sin límite de tiempo para las peticiones/conexiones: un vídeo largo
+// (1 hora o más) puede tardar varios minutos en descargarse y fusionarse
+// antes de empezar a enviarse, y no queremos que Node corte la conexión.
+server.timeout = 0;
+server.requestTimeout = 0;
+server.keepAliveTimeout = 0;

@@ -51,9 +51,23 @@ El repo ya incluye un `Dockerfile` y un `render.yaml` con todo configurado (Node
 
 Si con el uso lo notas lento o quieres que no se duerma nunca, el siguiente paso sería pasar al plan de pago de Render (~7 $/mes) o a un VPS propio.
 
+## YouTube pide "Sign in to confirm you're not a bot"
+
+YouTube bloquea con más frecuencia las IPs de servidores en la nube (Render incluida) y pide verificar que no eres un bot. La única solución fiable es que `yt-dlp` mande las cookies de tu propia sesión de YouTube. **Nunca subas ese archivo al repositorio** (son credenciales de tu cuenta); en Render se sube como "Secret File", que no se guarda en git y solo lo ve tu servicio.
+
+1. En tu **ordenador**, con Chrome o Firefox, inicia sesión en [youtube.com](https://youtube.com) con tu cuenta normal.
+2. Instala la extensión **"Get cookies.txt LOCALLY"** ([Chrome Web Store](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)) y, estando en youtube.com, expórtalas: te descarga un archivo `cookies.txt`.
+3. En el dashboard de Render, entra en tu servicio `download-web` → pestaña **Environment** → sección **Secret Files**.
+4. **Add Secret File**: en "Filename" pon `/etc/secrets/cookies.txt` y pega dentro el contenido completo del `cookies.txt` que descargaste.
+5. Guarda. Render redesplegará solo el servicio con el archivo disponible; el código ya lo detecta automáticamente si existe en esa ruta (se puede cambiar con la variable `YTDLP_COOKIES_FILE` si prefieres otra ruta).
+6. Prueba de nuevo el mismo enlace en la web.
+
+Las cookies de YouTube caducan cada cierto tiempo (semanas/meses); si el error vuelve a aparecer, repite los pasos 1-2 y actualiza el Secret File en Render con el `cookies.txt` nuevo.
+
 ## Variables de entorno
 
 - `PORT`: puerto del servidor (por defecto `3000`).
+- `YTDLP_COOKIES_FILE`: ruta a un `cookies.txt` de YouTube (opcional). Por defecto `/etc/secrets/cookies.txt`, que es donde Render pone los Secret Files.
 
 ## Aviso de uso
 

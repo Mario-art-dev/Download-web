@@ -34,6 +34,7 @@ app.get('/api/info', async (req, res) => {
     const info = await getInfo(url);
     res.json(info);
   } catch (err) {
+    console.error('[/api/info]', url, err.message);
     res.status(502).json({ error: err.message || 'No se pudo obtener información del vídeo' });
   }
 });
@@ -69,6 +70,7 @@ app.get('/api/download', async (req, res) => {
       if (!res.headersSent) res.status(500).end();
     });
   } catch (err) {
+    console.error('[/api/download]', url, err.message);
     if (workDir) cleanup(workDir);
     if (!res.headersSent) {
       res.status(502).json({ error: err.message || 'Fallo al descargar el vídeo' });
@@ -76,11 +78,30 @@ app.get('/api/download', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);
   checkYtDlpAvailable().then((ok) => {
     if (!ok) {
       console.warn('AVISO: no se encontró "yt-dlp" en el sistema. Instálalo con: pip install -U yt-dlp');
     }
   });
+  // El proveedor de PO Token tarda un poco en arrancar; solo es para log,
+  // no bloquea que la app funcione si no llega a tiempo o falla. Reintenta
+  // varias veces por si el primer arranque (cold start) es lento.
+  const checkPotProvider = (attempt) => {
+    require('http')
+      .get('http://127.0.0.1:4416/ping', (r) => console.log(`[pot-provider] responde (intento ${attempt}), status`, r.statusCode))
+      .on('error', (err) => {
+        console.warn(`[pot-provider] no responde (intento ${attempt}):`, err.message);
+        if (attempt < 6) setTimeout(() => checkPotProvider(attempt + 1), 5000);
+      });
+  };
+  setTimeout(() => checkPotProvider(1), 3000);
 });
+
+// Sin límite de tiempo para las peticiones/conexiones: un vídeo largo
+// (1 hora o más) puede tardar varios minutos en descargarse y fusionarse
+// antes de empezar a enviarse, y no queremos que Node corte la conexión.
+server.timeout = 0;
+server.requestTimeout = 0;
+server.keepAliveTimeout = 0;

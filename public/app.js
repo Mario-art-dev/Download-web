@@ -70,41 +70,49 @@
     previewTimer = setTimeout(() => fetchPreview(url), 500);
   });
 
-  form.addEventListener('submit', (e) => {
+  // La descarga no tiene límite de duración: un vídeo de 10 minutos o de 1
+  // hora se descarga igual, solo que tarda más. Para que un vídeo largo (que
+  // puede pesar varios cientos de MB o unos GB) no sature la memoria del
+  // navegador ni se corte si se bloquea la pantalla en el móvil, se dispara
+  // como una descarga nativa del navegador en vez de cargarla entera en JS.
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const url = urlInput.value.trim();
     if (!url) return;
 
     downloadBtn.disabled = true;
-    setStatus('Preparando descarga en la mejor calidad disponible… puede tardar unos segundos.', 'info');
+    setStatus('Comprobando el enlace…', 'info');
 
-    const downloadUrl = `/api/download?url=${encodeURIComponent(url)}`;
+    try {
+      const infoRes = await fetch(`/api/info?url=${encodeURIComponent(url)}`);
+      const info = await infoRes.json().catch(() => ({}));
+      if (!infoRes.ok) {
+        throw new Error(info.error || 'No se pudo comprobar el vídeo.');
+      }
 
-    fetch(downloadUrl)
-      .then(async (res) => {
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || 'No se pudo descargar el vídeo.');
-        }
-        const disposition = res.headers.get('Content-Disposition') || '';
-        const match = disposition.match(/filename="(.+)"/);
-        const filename = match ? match[1] : 'video.mp4';
-        const blob = await res.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(blobUrl);
-        setStatus('¡Descarga completada!', 'success');
-      })
-      .catch((err) => {
-        setStatus(err.message || 'Ocurrió un error al descargar el vídeo.', 'error');
-      })
-      .finally(() => {
+      const isLong = info.duration && info.duration > 180;
+      const waitMsg = isLong
+        ? `Vídeo de ${formatDuration(info.duration)}: la descarga puede tardar varios minutos, no hay límite de duración. No cierres esta pestaña.`
+        : 'Descargando en la mejor calidad disponible…';
+      setStatus(waitMsg, 'info');
+
+      const downloadUrl = `/api/download?url=${encodeURIComponent(url)}`;
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      setTimeout(() => {
+        setStatus(
+          'La descarga se ha iniciado en tu navegador. Para vídeos largos puede tardar varios minutos: revisa la barra/gestor de descargas para ver el progreso y saber cuándo termina.',
+          'success'
+        );
         downloadBtn.disabled = false;
-      });
+      }, 1500);
+    } catch (err) {
+      setStatus(err.message || 'Ocurrió un error al descargar el vídeo.', 'error');
+      downloadBtn.disabled = false;
+    }
   });
 })();
